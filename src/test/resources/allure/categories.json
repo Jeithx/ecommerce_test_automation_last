@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Product Defects",
+    "description": "Test failed due to product defects",
+    "descriptionHtml": "<b>Test failed due to actual defects in the application</b>",
+    "messageRegex": ".*AssertionError.*",
+    "traceRegex": ".*"
+  },
+  {
+    "name": "Element Not Found",
+    "description": "Element was not found on page",
+    "descriptionHtml": "<b>Element locator issue or page did not load correctly</b>",
+    "messageRegex": ".*NoSuchElementException.*",
+    "traceRegex": ".*"
+  },
+  {
+    "name": "Timeout Errors",
+    "description": "Test timed out waiting for element or page",
+    "descriptionHtml": "<b>Performance issue or element never appeared</b>",
+    "messageRegex": ".*TimeoutException.*",
+    "traceRegex": ".*"
+  },
+  {
+    "name": "Stale Element",
+    "description": "Element became stale during test execution",
+    "descriptionHtml": "<b>Page refreshed or element was removed from DOM</b>",
+    "messageRegex": ".*StaleElementReferenceException.*",
+    "traceRegex": ".*"
+  },
+  {
+    "name": "Test Infrastructure",
+    "description": "Test infrastructure issues",
+    "descriptionHtml": "<b>WebDriver, Grid, or environment issues</b>",
+    "messageRegex": ".*(WebDriverException|SessionNotCreatedException).*",
+    "traceRegex": ".*"
+  },
+  {
+    "name": "Flaky Tests",
+    "description": "Tests that pass on retry",
+    "descriptionHtml": "<b>Tests that are unreliable and need investigation</b>",
+    "messageRegex": ".*flaky.*",
+    "traceRegex": ".*RetryAnalyzer.*"
+  }
+]

@@ -1,0 +1,51 @@
+# ============================================
+# E-Commerce Test Automation - .gitignore
+# ============================================
+
+# Compiled class files
+*.class
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+.project
+.classpath
+.settings/
+
+# Maven
+dependency-reduced-pom.xml
+
+# Logs
+logs/
+*.log
+
+# Test outputs
+reports/
+screenshots/
+test-output/
+allure-results/
+allure-report/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.tmp
+*.bak
+*.backup
+
+# Environment files
+.env
+.env.local
+*.local.properties
+
+# Node (if any frontend tools)
+node_modules/
+
+# Docker
+*.pid

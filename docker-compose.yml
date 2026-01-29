@@ -1,0 +1,192 @@
+# ============================================
+# E-Commerce Test Automation - Docker Compose
+# Selenium Grid with Parallel Execution
+# ============================================
+version: '3.8'
+
+services:
+  # Selenium Hub - Central control point
+  selenium-hub:
+    image: selenium/hub:4.15.0
+    container_name: selenium-hub
+    ports:
+      - "4442:4442"
+      - "4443:4443"
+      - "4444:4444"
+    environment:
+      - GRID_MAX_SESSION=16
+      - GRID_BROWSER_TIMEOUT=300
+      - GRID_TIMEOUT=300
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4444/wd/hub/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+  # Chrome Nodes (4 instances for parallel execution)
+  chrome-node-1:
+    image: selenium/node-chrome:4.15.0
+    container_name: chrome-node-1
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=4
+      - SE_NODE_SESSION_TIMEOUT=300
+      - SE_VNC_NO_PASSWORD=1
+    ports:
+      - "7901:7900"  # VNC for debugging
+    shm_size: '2gb'
+    networks:
+      - test-network
+
+  chrome-node-2:
+    image: selenium/node-chrome:4.15.0
+    container_name: chrome-node-2
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=4
+      - SE_NODE_SESSION_TIMEOUT=300
+    ports:
+      - "7902:7900"
+    shm_size: '2gb'
+    networks:
+      - test-network
+
+  chrome-node-3:
+    image: selenium/node-chrome:4.15.0
+    container_name: chrome-node-3
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=4
+      - SE_NODE_SESSION_TIMEOUT=300
+    ports:
+      - "7903:7900"
+    shm_size: '2gb'
+    networks:
+      - test-network
+
+  chrome-node-4:
+    image: selenium/node-chrome:4.15.0
+    container_name: chrome-node-4
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=4
+      - SE_NODE_SESSION_TIMEOUT=300
+    ports:
+      - "7904:7900"
+    shm_size: '2gb'
+    networks:
+      - test-network
+
+  # Firefox Node (for cross-browser testing)
+  firefox-node:
+    image: selenium/node-firefox:4.15.0
+    container_name: firefox-node
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=2
+    ports:
+      - "7905:7900"
+    shm_size: '2gb'
+    networks:
+      - test-network
+
+  # Edge Node (for cross-browser testing)
+  edge-node:
+    image: selenium/node-edge:4.15.0
+    container_name: edge-node
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=2
+    ports:
+      - "7906:7900"
+    shm_size: '2gb'
+    networks:
+      - test-network
+
+  # Test Runner Container
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: test-runner
+    depends_on:
+      - chrome-node-1
+      - chrome-node-2
+      - chrome-node-3
+      - chrome-node-4
+    environment:
+      - SELENIUM_GRID_URL=http://selenium-hub:4444/wd/hub
+      - BROWSER=chrome
+      - HEADLESS=true
+      - TEST_ENV=staging
+      - THREAD_COUNT=8
+    volumes:
+      - ./target/allure-results:/app/target/allure-results
+      - ./reports:/app/reports
+      - ./screenshots:/app/screenshots
+    networks:
+      - test-network
+
+  # Allure Report Server (optional - for viewing reports)
+  allure-server:
+    image: frankescobar/allure-docker-service:2.21.0
+    container_name: allure-server
+    ports:
+      - "5050:5050"
+    environment:
+      - CHECK_RESULTS_EVERY_SECONDS=5
+      - KEEP_HISTORY=1
+    volumes:
+      - ./target/allure-results:/app/allure-results
+      - ./target/allure-reports:/app/default-reports
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge
+
+# ============================================
+# Usage:
+# 
+# Start Grid:     docker-compose up -d selenium-hub chrome-node-1 chrome-node-2 chrome-node-3 chrome-node-4
+# Run Tests:      docker-compose up test-runner
+# View Reports:   docker-compose up allure-server (then visit http://localhost:5050)
+# Stop All:       docker-compose down
+# 
+# Parallel Execution:
+# - 4 Chrome nodes × 4 sessions each = 16 parallel tests
+# - Reduces regression time by ~60%
+# ============================================

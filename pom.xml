@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    
+    <modelVersion>4.0.0</modelVersion>
+    
+    <groupId>com.ecommerce</groupId>
+    <artifactId>ecommerce-test-automation</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+    
+    <name>E-Commerce Test Automation Framework</name>
+    <description>Comprehensive test automation framework with POM design pattern, 
+        parallel execution via Selenium Grid, and CI/CD integration</description>
+    
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        
+        <!-- Core Dependencies -->
+        <selenium.version>4.15.0</selenium.version>
+        <testng.version>7.8.0</testng.version>
+        <webdrivermanager.version>5.6.2</webdrivermanager.version>
+        
+        <!-- Reporting -->
+        <allure.version>2.24.0</allure.version>
+        <extent.version>5.1.1</extent.version>
+        
+        <!-- Utilities -->
+        <jackson.version>2.15.3</jackson.version>
+        <lombok.version>1.18.36</lombok.version>
+        <log4j.version>2.21.1</log4j.version>
+        <datafaker.version>2.0.2</datafaker.version>
+        
+        <!-- Plugins -->
+        <maven.compiler.version>3.11.0</maven.compiler.version>
+        <maven.surefire.version>3.2.2</maven.surefire.version>
+        <allure.maven.version>2.12.0</allure.maven.version>
+    </properties>
+    
+    <dependencies>
+        <!-- ============================================ -->
+        <!-- SELENIUM & WEBDRIVER                         -->
+        <!-- ============================================ -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>${selenium.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>io.github.bonigarcia</groupId>
+            <artifactId>webdrivermanager</artifactId>
+            <version>${webdrivermanager.version}</version>
+        </dependency>
+        
+        <!-- ============================================ -->
+        <!-- TESTING FRAMEWORK                            -->
+        <!-- ============================================ -->
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
+        </dependency>
+        
+        <!-- ============================================ -->
+        <!-- REPORTING                                    -->
+        <!-- ============================================ -->
+        <dependency>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-testng</artifactId>
+            <version>${allure.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.aventstack</groupId>
+            <artifactId>extentreports</artifactId>
+            <version>${extent.version}</version>
+        </dependency>
+        
+        <!-- ============================================ -->
+        <!-- UTILITIES                                    -->
+        <!-- ============================================ -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20231013</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>net.datafaker</groupId>
+            <artifactId>datafaker</artifactId>
+            <version>${datafaker.version}</version>
+        </dependency>
+        
+        <!-- ============================================ -->
+        <!-- LOGGING                                      -->
+        <!-- ============================================ -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        
+        <!-- ============================================ -->
+        <!-- ASSERTIONS                                   -->
+        <!-- ============================================ -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.24.2</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <version>2.2</version>
+        </dependency>
+        
+        <!-- ============================================ -->
+        <!-- FILE UTILITIES                               -->
+        <!-- ============================================ -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.15.0</version>
+        </dependency>
+        
+        <!-- ============================================ -->
+        <!-- ASYNC UTILITIES                              -->
+        <!-- ============================================ -->
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>4.2.0</version>
+        </dependency>
+    </dependencies>
+    
+    <build>
+        <plugins>
+            <!-- Compiler Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.version}</version>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            
+            <!-- Surefire Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven.surefire.version}</version>
+                <configuration>
+                    <suiteXmlFiles>
+                        <suiteXmlFile>testng.xml</suiteXmlFile>
+                    </suiteXmlFiles>
+                    <systemPropertyVariables>
+                        <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
+                        <browser>${browser}</browser>
+                        <environment>${environment}</environment>
+                        <headless>${headless}</headless>
+                        <selenium.grid>${selenium.grid}</selenium.grid>
+                        <selenium.grid.url>${selenium.grid.url}</selenium.grid.url>
+                    </systemPropertyVariables>
+                    <argLine>
+                        -Dfile.encoding=UTF-8
+                    </argLine>
+                </configuration>
+            </plugin>
+            
+            <!-- Allure Plugin -->
+            <plugin>
+                <groupId>io.qameta.allure</groupId>
+                <artifactId>allure-maven</artifactId>
+                <version>${allure.maven.version}</version>
+                <configuration>
+                    <reportVersion>${allure.version}</reportVersion>
+                </configuration>
+            </plugin>
+        </plugins>
+        
+        <!-- Copy Allure environment files -->
+        <resources>
+            <resource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
+    
+    <!-- ============================================ -->
+    <!-- PROFILES                                     -->
+    <!-- ============================================ -->
+    <profiles>
+        <!-- Smoke Tests -->
+        <profile>
+            <id>smoke</id>
+            <properties>
+                <groups>smoke</groups>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <groups>smoke</groups>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
+        <!-- Regression Tests -->
+        <profile>
+            <id>regression</id>
+            <properties>
+                <groups>regression</groups>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <groups>regression</groups>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
+        <!-- E2E Tests -->
+        <profile>
+            <id>e2e</id>
+            <properties>
+                <groups>e2e</groups>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <groups>e2e</groups>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
+        <!-- Selenium Grid Profile -->
+        <profile>
+            <id>grid</id>
+            <properties>
+                <selenium.grid>true</selenium.grid>
+                <selenium.grid.url>http://localhost:4444/wd/hub</selenium.grid.url>
+                <headless>true</headless>
+            </properties>
+        </profile>
+        
+        <!-- CI Profile (Jenkins/GitHub Actions) -->
+        <profile>
+            <id>ci</id>
+            <properties>
+                <selenium.grid>true</selenium.grid>
+                <headless>true</headless>
+            </properties>
+        </profile>
+    </profiles>
+</project>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="E-Commerce Test Suite" verbose="2" parallel="tests" thread-count="8">
+    
+    <!-- Default Parameters -->
+    <parameter name="browser" value="chrome"/>
+    <parameter name="environment" value="staging"/>
+    
+    <!-- Listeners -->
+    <listeners>
+        <listener class-name="com.ecommerce.listeners.TestListener"/>
+        <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+    </listeners>
+    
+    <!-- ============================================ -->
+    <!-- SMOKE TESTS - Quick validation (~5 min)     -->
+    <!-- ============================================ -->
+    <test name="Smoke Tests" parallel="methods" thread-count="4">
+        <groups>
+            <run>
+                <include name="smoke"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.ecommerce.tests.ui.LoginTest"/>
+            <class name="com.ecommerce.tests.ui.CartTest"/>
+            <class name="com.ecommerce.tests.ui.CheckoutTest"/>
+            <class name="com.ecommerce.tests.ui.ProductTest"/>
+            <class name="com.ecommerce.tests.ui.NavigationTest"/>
+            <class name="com.ecommerce.tests.ui.RemoveFromCartTest"/>
+            <class name="com.ecommerce.tests.e2e.E2ETest"/>
+        </classes>
+    </test>
+    
+    <!-- ============================================ -->
+    <!-- REGRESSION TESTS - Full validation (~15 min) -->
+    <!-- ============================================ -->
+    <test name="Regression Tests" parallel="methods" thread-count="8">
+        <groups>
+            <run>
+                <include name="regression"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.ecommerce.tests.ui.LoginTest"/>
+            <class name="com.ecommerce.tests.ui.CartTest"/>
+            <class name="com.ecommerce.tests.ui.CheckoutTest"/>
+            <class name="com.ecommerce.tests.ui.ProductTest"/>
+            <class name="com.ecommerce.tests.ui.NavigationTest"/>
+            <class name="com.ecommerce.tests.ui.RemoveFromCartTest"/>
+            <class name="com.ecommerce.tests.e2e.E2ETest"/>
+        </classes>
+    </test>
+    
+    <!-- ============================================ -->
+    <!-- E2E TESTS - End-to-End journeys             -->
+    <!-- ============================================ -->
+    <test name="E2E Tests" parallel="methods" thread-count="4">
+        <groups>
+            <run>
+                <include name="e2e"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.ecommerce.tests.e2e.E2ETest"/>
+        </classes>
+    </test>
+    
+    <!-- ============================================ -->
+    <!-- CROSS-BROWSER: Chrome                        -->
+    <!-- ============================================ -->
+    <test name="Chrome Tests" parallel="methods" thread-count="4">
+        <parameter name="browser" value="chrome"/>
+        <groups>
+            <run>
+                <include name="smoke"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.ecommerce.tests.ui.LoginTest"/>
+            <class name="com.ecommerce.tests.ui.CartTest"/>
+        </classes>
+    </test>
+    
+    <!-- ============================================ -->
+    <!-- CROSS-BROWSER: Firefox                       -->
+    <!-- ============================================ -->
+    <test name="Firefox Tests" parallel="methods" thread-count="4">
+        <parameter name="browser" value="firefox"/>
+        <groups>
+            <run>
+                <include name="smoke"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.ecommerce.tests.ui.LoginTest"/>
+            <class name="com.ecommerce.tests.ui.CartTest"/>
+        </classes>
+    </test>
+    
+</suite>
+
+<!--
+╔═══════════════════════════════════════════════════════════════╗
+║                    TEST SUITE SUMMARY                         ║
+╠═══════════════════════════════════════════════════════════════╣
+║                                                               ║
+║  LOGIN TESTS:           12 tests (smoke: 3, regression: 9)    ║
+║  CART TESTS:            10 tests (smoke: 2, regression: 8)    ║
+║  CHECKOUT TESTS:        12 tests (smoke: 2, regression: 10)   ║
+║  PRODUCT TESTS:         10 tests (smoke: 2, regression: 8)    ║
+║  NAVIGATION TESTS:       8 tests (smoke: 2, regression: 6)    ║
+║  REMOVE FROM CART:       8 tests (smoke: 2, regression: 6)    ║
+║  E2E TESTS:              8 tests (smoke: 2, regression: 6)    ║
+║  ───────────────────────────────────────────────────────────  ║
+║  TOTAL:                 68 tests                              ║
+║                                                               ║
+║  Parallel Execution: 8 threads (Selenium Grid: 16 sessions)   ║
+║  Expected Duration:  Smoke ~5 min, Regression ~15 min         ║
+║  Time Reduction:     ~60% vs sequential execution             ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+-->

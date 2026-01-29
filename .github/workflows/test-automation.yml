@@ -1,0 +1,231 @@
+# ============================================
+# E-Commerce Test Automation - GitHub Actions
+# ============================================
+
+name: E-Commerce Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run regression every day at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test Suite'
+        required: true
+        default: 'smoke'
+        type: choice
+        options:
+          - smoke
+          - regression
+          - all
+      browser:
+        description: 'Browser'
+        required: true
+        default: 'chrome'
+        type: choice
+        options:
+          - chrome
+          - firefox
+          - edge
+
+env:
+  JAVA_VERSION: '17'
+  MAVEN_OPTS: '-Xmx1024m'
+
+jobs:
+  # ============================================
+  # Smoke Tests - Quick validation
+  # ============================================
+  smoke-tests:
+    name: 🔥 Smoke Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event.inputs.test_suite == 'smoke'
+    
+    services:
+      selenium-hub:
+        image: selenium/hub:4.15.0
+        ports:
+          - 4444:4444
+        options: --health-cmd="curl -f http://localhost:4444/wd/hub/status" --health-interval=10s --health-timeout=5s --health-retries=5
+      
+      chrome-node:
+        image: selenium/node-chrome:4.15.0
+        env:
+          SE_EVENT_BUS_HOST: selenium-hub
+          SE_EVENT_BUS_PUBLISH_PORT: 4442
+          SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
+        options: --shm-size="2gb"
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: ☕ Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+      
+      - name: 📦 Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+      
+      - name: 🧪 Run Smoke Tests
+        run: |
+          mvn clean test \
+            -Dgroups=smoke \
+            -Dbrowser=chrome \
+            -Dheadless=true \
+            -Dselenium.grid=true \
+            -Dselenium.grid.url=http://localhost:4444/wd/hub \
+            -B
+      
+      - name: 📊 Generate Allure Report
+        if: always()
+        uses: simple-elf/allure-report-action@master
+        with:
+          allure_results: target/allure-results
+          allure_history: allure-history
+      
+      - name: 📤 Upload Allure Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-smoke
+          path: allure-history
+          retention-days: 30
+      
+      - name: 📤 Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-smoke
+          path: |
+            target/surefire-reports/
+            screenshots/
+          retention-days: 7
+
+  # ============================================
+  # Regression Tests - Full validation
+  # ============================================
+  regression-tests:
+    name: 🔄 Regression Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.test_suite == 'regression' || github.event.inputs.test_suite == 'all'
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chrome, firefox]
+    
+    services:
+      selenium-hub:
+        image: selenium/hub:4.15.0
+        ports:
+          - 4444:4444
+        options: --health-cmd="curl -f http://localhost:4444/wd/hub/status" --health-interval=10s --health-timeout=5s --health-retries=5
+      
+      chrome-node:
+        image: selenium/node-chrome:4.15.0
+        env:
+          SE_EVENT_BUS_HOST: selenium-hub
+          SE_EVENT_BUS_PUBLISH_PORT: 4442
+          SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
+          SE_NODE_MAX_SESSIONS: 4
+        options: --shm-size="2gb"
+      
+      firefox-node:
+        image: selenium/node-firefox:4.15.0
+        env:
+          SE_EVENT_BUS_HOST: selenium-hub
+          SE_EVENT_BUS_PUBLISH_PORT: 4442
+          SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
+          SE_NODE_MAX_SESSIONS: 2
+        options: --shm-size="2gb"
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: ☕ Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+      
+      - name: 🧪 Run Regression Tests on ${{ matrix.browser }}
+        run: |
+          mvn clean test \
+            -Dgroups=regression \
+            -Dbrowser=${{ matrix.browser }} \
+            -Dheadless=true \
+            -Dselenium.grid=true \
+            -Dselenium.grid.url=http://localhost:4444/wd/hub \
+            -Dthread.count=4 \
+            -B
+      
+      - name: 📊 Generate Allure Report
+        if: always()
+        uses: simple-elf/allure-report-action@master
+        with:
+          allure_results: target/allure-results
+          allure_history: allure-history-${{ matrix.browser }}
+      
+      - name: 📤 Upload Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.browser }}
+          path: |
+            target/surefire-reports/
+            allure-history-${{ matrix.browser }}/
+            screenshots/
+          retention-days: 14
+
+  # ============================================
+  # Publish Results
+  # ============================================
+  publish-results:
+    name: 📊 Publish Results
+    runs-on: ubuntu-latest
+    needs: [smoke-tests]
+    if: always() && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: 📥 Download Allure Report
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-report-smoke
+          path: allure-history
+      
+      - name: 🌐 Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: allure-history
+          destination_dir: allure-report
+
+  # ============================================
+  # Notify on Failure
+  # ============================================
+  notify:
+    name: 📢 Notify
+    runs-on: ubuntu-latest
+    needs: [smoke-tests, regression-tests]
+    if: failure()
+    
+    steps:
+      - name: 📧 Send Notification
+        run: |
+          echo "Tests failed! Check the workflow run for details."
+          echo "Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
