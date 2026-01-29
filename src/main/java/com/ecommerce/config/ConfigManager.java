@@ -1,5 +1,7 @@
 package com.ecommerce.config;
 
+import com.ecommerce.security.CredentialMasker;
+import com.ecommerce.security.SecretsManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,14 +20,16 @@ import java.util.Properties;
 public class ConfigManager {
     
     private static final Logger log = LogManager.getLogger(ConfigManager.class);
-    
+
     private static ConfigManager instance;
     private Properties properties;
-    
+    private SecretsManager secretsManager;
+
     private static final String CONFIG_PATH = "src/test/resources/config/config.properties";
     
     private ConfigManager() {
         properties = new Properties();
+        secretsManager = SecretsManager.getInstance();
         loadProperties();
     }
     
@@ -41,15 +45,19 @@ public class ConfigManager {
             properties.load(input);
             log.info("Configuration loaded successfully");
         } catch (IOException e) {
-            log.warn("Could not load config file, using defaults: {}", e.getMessage());
+            String sanitizedMessage = CredentialMasker.maskCredentialsInText(e.getMessage());
+            log.warn("Could not load config file, using defaults: {}", sanitizedMessage);
             setDefaults();
         }
-        
+
         // Override with environment variables if present
         overrideWithEnvironmentVariables();
-        
+
         // Override with system properties if present
         overrideWithSystemProperties();
+
+        // Load secrets from SecretsManager
+        loadSecrets();
     }
     
     private void setDefaults() {
@@ -59,8 +67,7 @@ public class ConfigManager {
         properties.setProperty("implicit.wait", "10");
         properties.setProperty("explicit.wait", "20");
         properties.setProperty("page.load.timeout", "30");
-        properties.setProperty("standard.user", "standard_user");
-        properties.setProperty("test.password", "secret_sauce");
+        // Credentials removed - now loaded from SecretsManager
         properties.setProperty("screenshot.on.failure", "true");
         properties.setProperty("selenium.grid", "false");
         properties.setProperty("selenium.grid.url", "http://localhost:4444/wd/hub");
@@ -92,6 +99,34 @@ public class ConfigManager {
             if (systemValue != null && !systemValue.isEmpty()) {
                 properties.setProperty(key, systemValue);
                 log.debug("Overridden from System Property: {} = {}", key, systemValue);
+            }
+        }
+    }
+
+    /**
+     * Load secrets from SecretsManager into properties
+     * This allows credentials to be retrieved via getProperty() like other config values
+     */
+    private void loadSecrets() {
+        // Load user credentials from secrets management
+        String[] secretKeys = {
+            "STANDARD_USER",
+            "LOCKED_USER",
+            "PROBLEM_USER",
+            "PERFORMANCE_USER",
+            "TEST_PASSWORD"
+        };
+
+        for (String secretKey : secretKeys) {
+            try {
+                String value = secretsManager.getSecret(secretKey, true);
+                String propertyKey = secretKey.toLowerCase().replace("_", ".");
+                properties.setProperty(propertyKey, value);
+                log.debug("Loaded secret '{}' from SecretsManager", propertyKey);
+            } catch (Exception e) {
+                String sanitizedMessage = CredentialMasker.maskCredentialsInText(e.getMessage());
+                log.error("Failed to load secret '{}': {}", secretKey, sanitizedMessage);
+                throw e; // Re-throw to fail fast if secrets are missing
             }
         }
     }
@@ -145,9 +180,21 @@ public class ConfigManager {
     }
     
     // ==================== UTILITY ====================
-    
+
     public void reload() {
+        secretsManager.reload();
         loadProperties();
         log.info("Configuration reloaded");
+    }
+
+    /**
+     * Get a credential with masked value for logging
+     *
+     * @param key the credential key
+     * @return masked credential value
+     */
+    public String getCredentialMasked(String key) {
+        String value = getProperty(key);
+        return CredentialMasker.maskCredential(value);
     }
 }

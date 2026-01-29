@@ -5,8 +5,29 @@
 [![TestNG](https://img.shields.io/badge/TestNG-7.8.0-red.svg)](https://testng.org/)
 [![Allure](https://img.shields.io/badge/Allure-2.24.0-orange.svg)](https://docs.qameta.io/allure/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
+[![Security](https://img.shields.io/badge/Security-Hardened-success.svg)](docs/SECURITY.md)
+[![OWASP](https://img.shields.io/badge/OWASP-Scanning-informational.svg)](docs/SECURITY.md#security-scanning)
 
 A robust, enterprise-grade test automation framework built with **Page Object Model (POM)** design pattern, featuring **parallel execution** via Dockerized Selenium Grid, comprehensive **CI/CD integration**, and advanced **reporting capabilities**.
+
+---
+
+## 🔒 Security First
+
+This framework implements **production-grade security** practices:
+
+- ✅ **Zero hardcoded credentials** - All secrets loaded from environment variables or .env files
+- ✅ **Automated security scanning** - OWASP dependency check, secret scanning, container scanning
+- ✅ **Credential masking** - Automatic redaction in logs and reports
+- ✅ **Future-proof architecture** - Abstraction layer supports Azure Key Vault, AWS Secrets Manager
+
+**Quick Setup:**
+1. Copy `.env.template` to `.env`
+2. Run tests: `mvn clean test`
+
+📖 **Documentation:**
+- **[Security Guide](docs/SECURITY.md)** - Comprehensive security practices
+- **[Setup Guide](docs/SETUP.md)** - Get started in < 5 minutes
 
 ---
 
@@ -76,9 +97,15 @@ A robust, enterprise-grade test automation framework built with **Page Object Mo
 git clone https://github.com/your-org/ecommerce-test-automation.git
 cd ecommerce-test-automation
 
+# Set up environment variables
+cp .env.template .env
+# Edit .env with your credentials (see docs/SETUP.md for details)
+
 # Install dependencies
 mvn clean install -DskipTests
 ```
+
+**Important:** You must set up the `.env` file before running tests. See [docs/SETUP.md](docs/SETUP.md) for detailed instructions.
 
 ### Running Tests
 
@@ -110,7 +137,13 @@ ecommerce-test-automation/
 │   ├── main/java/com/ecommerce/
 │   │   ├── config/
 │   │   │   └── ConfigManager.java          # Configuration management
+│   │   ├── security/
+│   │   │   ├── SecretsProvider.java        # Secrets abstraction interface
+│   │   │   ├── EnvironmentSecretsProvider.java  # Env vars + .env loader
+│   │   │   ├── SecretsManager.java         # Secrets facade
+│   │   │   └── CredentialMasker.java       # Credential masking utility
 │   │   ├── exceptions/
+│   │   │   ├── SecretAccessException.java  # Security exception
 │   │   │   ├── TestExecutionException.java
 │   │   │   └── ElementWaitTimeoutException.java
 │   │   └── utils/
@@ -143,17 +176,24 @@ ecommerce-test-automation/
 │
 ├── src/test/resources/
 │   ├── config/
-│   │   └── config.properties               # Test configuration
+│   │   └── config.properties               # Test configuration (no credentials!)
 │   ├── allure/
 │   │   ├── categories.json                 # Failure categories
 │   │   └── environment.properties          # Environment info
 │   ├── allure.properties
 │   └── log4j2.xml                          # Logging configuration
 │
+├── docs/
+│   ├── SECURITY.md                          # Security practices & setup
+│   └── SETUP.md                             # Quick start guide
+├── .env.template                            # Environment variables template
+├── .env                                     # Local env vars (not committed!)
 ├── docker-compose.yml                       # Selenium Grid setup
 ├── Dockerfile                               # Test container
 ├── Jenkinsfile                              # Jenkins pipeline
-├── .github/workflows/test-automation.yml   # GitHub Actions
+├── .github/workflows/
+│   ├── test-automation.yml                 # Test execution pipeline
+│   └── security-scan.yml                   # Security scanning pipeline
 ├── testng.xml                               # Test suite configuration
 ├── pom.xml                                  # Maven configuration
 └── README.md

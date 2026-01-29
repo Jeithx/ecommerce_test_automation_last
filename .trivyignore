@@ -1,0 +1,11 @@
+# Trivy Ignore File
+# ==================
+# This file contains CVEs to ignore during container scanning
+# Each entry should include a comment explaining why it's ignored
+
+# Example:
+# # CVE-2023-12345: False positive - affects Windows only, we use Linux
+# CVE-2023-12345
+
+# Add CVEs to ignore below (with justification):
+

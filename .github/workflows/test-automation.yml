@@ -45,14 +45,21 @@ jobs:
     name: 🔥 Smoke Tests
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event.inputs.test_suite == 'smoke'
-    
+
+    env:
+      STANDARD_USER: ${{ secrets.STANDARD_USER }}
+      LOCKED_USER: ${{ secrets.LOCKED_USER }}
+      PROBLEM_USER: ${{ secrets.PROBLEM_USER }}
+      PERFORMANCE_USER: ${{ secrets.PERFORMANCE_USER }}
+      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+
     services:
       selenium-hub:
         image: selenium/hub:4.15.0
         ports:
           - 4444:4444
         options: --health-cmd="curl -f http://localhost:4444/wd/hub/status" --health-interval=10s --health-timeout=5s --health-retries=5
-      
+
       chrome-node:
         image: selenium/node-chrome:4.15.0
         env:
@@ -60,7 +67,7 @@ jobs:
           SE_EVENT_BUS_PUBLISH_PORT: 4442
           SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
         options: --shm-size="2gb"
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -126,7 +133,14 @@ jobs:
       fail-fast: false
       matrix:
         browser: [chrome, firefox]
-    
+
+    env:
+      STANDARD_USER: ${{ secrets.STANDARD_USER }}
+      LOCKED_USER: ${{ secrets.LOCKED_USER }}
+      PROBLEM_USER: ${{ secrets.PROBLEM_USER }}
+      PERFORMANCE_USER: ${{ secrets.PERFORMANCE_USER }}
+      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+
     services:
       selenium-hub:
         image: selenium/hub:4.15.0
