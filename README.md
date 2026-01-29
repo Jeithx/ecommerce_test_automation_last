@@ -427,9 +427,3 @@ With RetryAnalyzer:
 This project is licensed under the MIT License.
 
 ---
-
-## 📧 Contact
-
-**QA Team** - qa-team@company.com
-
-Project Link: [https://github.com/your-org/ecommerce-test-automation](https://github.com/your-org/ecommerce-test-automation)
