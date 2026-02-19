@@ -50,7 +50,15 @@ public abstract class BasePage {
     protected void waitForUrlContains(String urlPart) {
         wait.until(ExpectedConditions.urlContains(urlPart));
     }
-    
+
+    protected void waitForUrlNotContains(String urlPart) {
+        wait.until(d -> !d.getCurrentUrl().contains(urlPart));
+    }
+
+    protected void waitForElementInvisible(By locator) {
+        wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
+    }
+
     protected void waitForPageLoad() {
         wait.until(driver -> ((JavascriptExecutor) driver)
             .executeScript("return document.readyState").equals("complete"));

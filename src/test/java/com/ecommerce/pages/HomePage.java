@@ -80,18 +80,23 @@ public class HomePage extends BasePage {
     // ==================== PRODUCT ACTIONS ====================
     
     public void addProductToCart(String productName) {
-        String buttonId = "add-to-cart-" + productName.toLowerCase()
+        String addButtonId = "add-to-cart-" + productName.toLowerCase()
             .replace(" ", "-");
-        WebElement addButton = driver.findElement(By.id(buttonId));
+        String removeButtonId = "remove-" + productName.toLowerCase()
+            .replace(" ", "-");
+        WebElement addButton = driver.findElement(By.id(addButtonId));
         click(addButton);
+        waitForElementPresent(By.id(removeButtonId));
         log.info("Added product to cart: {}", productName);
     }
-    
+
     public void addProductToCart(int index) {
         if (index < inventoryItems.size()) {
             WebElement item = inventoryItems.get(index);
             WebElement addButton = item.findElement(By.cssSelector("button[id^='add-to-cart']"));
+            String removeButtonId = addButton.getAttribute("id").replace("add-to-cart-", "remove-");
             click(addButton);
+            waitForElementPresent(By.id(removeButtonId));
             log.info("Added product at index {} to cart", index);
         }
     }
@@ -155,19 +160,22 @@ public class HomePage extends BasePage {
     
     public CartPage goToCart() {
         click(cartLink);
+        waitForUrlContains("cart");
         log.info("Navigated to cart");
         return new CartPage(driver);
     }
     
     public void openMenu() {
         click(menuButton);
+        waitForElementPresent(By.cssSelector(".bm-menu-wrap[aria-hidden='false']"));
         log.info("Opened menu");
     }
-    
+
     public LoginPage logout() {
         openMenu();
         waitForElementClickable(logoutLink);
         click(logoutLink);
+        waitForUrlNotContains("inventory");
         log.info("Logged out");
         return new LoginPage(driver);
     }

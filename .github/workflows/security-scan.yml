@@ -80,10 +80,10 @@ jobs:
           fetch-depth: 0  # Full history for comprehensive scanning
 
       - name: 🔐 Run TruffleHog Secret Scan
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@v3
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
+          base: ${{ github.event.before || github.event.repository.default_branch }}
           head: HEAD
           extra_args: --only-verified
 
@@ -117,7 +117,7 @@ jobs:
         run: docker build -t ecommerce-test:latest -f Dockerfile .
 
       - name: 🔍 Run Trivy Vulnerability Scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ecommerce-test:latest
           format: 'sarif'
@@ -127,7 +127,7 @@ jobs:
 
       - name: 📊 Upload Trivy Results to GitHub Security
         if: always()
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
 

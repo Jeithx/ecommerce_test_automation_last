@@ -1,6 +1,7 @@
 package com.ecommerce.pages;
 
 import com.ecommerce.pages.base.BasePage;
+import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -70,8 +71,9 @@ public class LoginPage extends BasePage {
         enterUsername(username);
         enterPassword(password);
         clickLoginButton();
-        
+
         if (isLoginSuccessful()) {
+            waitForElementPresent(By.cssSelector(".inventory_item"));
             log.info("Login successful for user: {}", username);
             return new HomePage(driver);
         } else {

@@ -29,8 +29,8 @@ import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Base Test Class - Foundation for all test classes
@@ -50,7 +50,7 @@ public class BaseTest {
     private static final ThreadLocal<ExtentTest> extentTestThreadLocal = new ThreadLocal<>();
     
     // Test metrics for reliability tracking
-    private static final Map<String, TestMetrics> testMetricsMap = new HashMap<>();
+    private static final Map<String, TestMetrics> testMetricsMap = new ConcurrentHashMap<>();
     
     protected ConfigManager config;
     protected static ExtentReports extent;
@@ -222,7 +222,7 @@ public class BaseTest {
     /**
      * Track test metrics for reliability calculation
      */
-    private void trackTestMetrics(String testName, int status, long duration) {
+    private synchronized void trackTestMetrics(String testName, int status, long duration) {
         TestMetrics metrics = testMetricsMap.computeIfAbsent(testName, k -> new TestMetrics());
         metrics.totalRuns++;
         metrics.totalDuration += duration;
@@ -289,7 +289,7 @@ public class BaseTest {
         log.info("├─────────────────────────────────────────────");
         log.info("│ Total Test Runs: {}", totalTests);
         log.info("│ Passed: {} | Failed: {}", totalPassed, totalTests - totalPassed);
-        log.info("│ Suite Reliability: {:.2f}%", reliability);
+        log.info("│ Suite Reliability: {}%", String.format("%.2f", reliability));
         log.info("│ Total Duration: {} ms", totalDuration);
         log.info("└─────────────────────────────────────────────");
         

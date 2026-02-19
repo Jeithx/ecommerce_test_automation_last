@@ -17,8 +17,9 @@ A robust, enterprise-grade test automation framework built with **Page Object Mo
 This framework implements **production-grade security** practices:
 
 - ✅ **Zero hardcoded credentials** - All secrets loaded from environment variables or .env files
-- ✅ **Automated security scanning** - OWASP dependency check, secret scanning, container scanning
+- ✅ **Automated security scanning** - OWASP Dependency Check (CVSS ≥ 7), TruffleHog v3 secret scanning, Trivy container scanning
 - ✅ **Credential masking** - Automatic redaction in logs and reports
+- ✅ **GitHub Security integration** - SARIF results uploaded via CodeQL v3 action
 - ✅ **Future-proof architecture** - Abstraction layer supports Azure Key Vault, AWS Secrets Manager
 
 **Quick Setup:**
@@ -158,7 +159,8 @@ ecommerce-test-automation/
 │       │   │   ├── CartTest.java           # 10 cart tests
 │       │   │   ├── CheckoutTest.java       # 12 checkout tests
 │       │   │   ├── ProductTest.java        # 10 product tests
-│       │   │   └── NavigationTest.java     # 8 navigation tests
+│       │   │   ├── NavigationTest.java     # 8 navigation tests
+│       │   │   └── RemoveFromCartTest.java # 8 remove-from-cart tests
 │       │   └── e2e/
 │       │       └── E2ETest.java            # 8 E2E tests
 │       ├── pages/
@@ -194,7 +196,8 @@ ecommerce-test-automation/
 ├── .github/workflows/
 │   ├── test-automation.yml                 # Test execution pipeline
 │   └── security-scan.yml                   # Security scanning pipeline
-├── testng.xml                               # Test suite configuration
+├── testng.xml                               # Local test suite (3 suites, 2-4 threads)
+├── testng-grid.xml                          # CI/Grid test suite (full parallelism, used by -Pci)
 ├── pom.xml                                  # Maven configuration
 └── README.md
 ```
@@ -294,12 +297,36 @@ Total Parallel Capacity: 16 sessions
 
 ### GitHub Actions
 
+Two separate workflows run in CI:
+
+**`test-automation.yml`** — Test execution pipeline
 ```bash
 # Triggers:
 # - Push to main/develop
 # - Pull requests
 # - Daily regression at 2 AM UTC
-# - Manual workflow dispatch
+# - Manual workflow dispatch (smoke / regression / all)
+
+# Pipeline steps:
+# 1. Start Selenium Grid (Docker services)
+# 2. Run tests in parallel (headless Chrome/Firefox)
+# 3. Generate Allure report  →  mvn allure:report
+# 4. Upload artifacts (report + surefire results + screenshots)
+# 5. Deploy Allure report to GitHub Pages (main branch only)
+```
+
+**`security-scan.yml`** — Security scanning pipeline
+```bash
+# Triggers:
+# - Push to main/develop
+# - Pull requests
+# - Weekly on Monday at 6 AM UTC
+
+# Scans:
+# 1. OWASP Dependency Check  (fails on CVSS >= 7)
+# 2. Secret Scanning         (TruffleHog v3, verified secrets only)
+# 3. Container Scanning      (Trivy 0.28.0, CRITICAL + HIGH only)
+# 4. Results uploaded to GitHub Security tab (SARIF via CodeQL v3)
 ```
 
 ---
@@ -309,11 +336,12 @@ Total Parallel Capacity: 16 sessions
 ### Allure Report
 
 ```bash
-# Generate and open report
+# Generate and open report (local development)
 mvn allure:serve
 
-# Just generate (no server)
+# Generate static report only (used in CI)
 mvn allure:report
+# Output: target/site/allure-maven-plugin/index.html
 ```
 
 ### Report Features
@@ -416,7 +444,8 @@ With RetryAnalyzer:
 | `mvn test -Dheadless=true` | Run headless |
 | `mvn test -Pci` | Run with CI profile |
 | `mvn test -Pgrid` | Run on Selenium Grid |
-| `mvn allure:serve` | Generate & view Allure report |
+| `mvn allure:report` | Generate static Allure report (`target/site/allure-maven-plugin`) |
+| `mvn allure:serve` | Generate & view Allure report in browser |
 | `docker-compose up -d` | Start Selenium Grid |
 | `docker-compose down` | Stop Selenium Grid |
 

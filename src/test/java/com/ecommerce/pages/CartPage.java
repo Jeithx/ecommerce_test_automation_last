@@ -55,6 +55,7 @@ public class CartPage extends BasePage {
             .replace(" ", "-");
         WebElement removeButton = driver.findElement(By.id(buttonId));
         click(removeButton);
+        waitForElementInvisible(By.id(buttonId));
         log.info("Removed product from cart: {}", productName);
     }
     

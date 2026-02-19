@@ -79,16 +79,10 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       
-      - name: 📦 Cache Maven packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
-      
       - name: 🧪 Run Smoke Tests
         run: |
           mvn clean test \
+            -Pci \
             -Dgroups=smoke \
             -Dbrowser=chrome \
             -Dheadless=true \
@@ -98,17 +92,14 @@ jobs:
       
       - name: 📊 Generate Allure Report
         if: always()
-        uses: simple-elf/allure-report-action@master
-        with:
-          allure_results: target/allure-results
-          allure_history: allure-history
-      
+        run: mvn allure:report -B
+
       - name: 📤 Upload Allure Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-report-smoke
-          path: allure-history
+          path: target/site/allure-maven-plugin
           retention-days: 30
       
       - name: 📤 Upload Test Results
@@ -180,6 +171,7 @@ jobs:
       - name: 🧪 Run Regression Tests on ${{ matrix.browser }}
         run: |
           mvn clean test \
+            -Pci \
             -Dgroups=regression \
             -Dbrowser=${{ matrix.browser }} \
             -Dheadless=true \
@@ -190,11 +182,8 @@ jobs:
       
       - name: 📊 Generate Allure Report
         if: always()
-        uses: simple-elf/allure-report-action@master
-        with:
-          allure_results: target/allure-results
-          allure_history: allure-history-${{ matrix.browser }}
-      
+        run: mvn allure:report -B
+
       - name: 📤 Upload Artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -202,7 +191,7 @@ jobs:
           name: test-results-${{ matrix.browser }}
           path: |
             target/surefire-reports/
-            allure-history-${{ matrix.browser }}/
+            target/site/allure-maven-plugin/
             screenshots/
           retention-days: 14
 
